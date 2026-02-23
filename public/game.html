@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bomberman Blast Hype Online - Game</title>
+<style>
+html, body{
+  margin:0;
+  padding:0;
+  width:100%;
+  min-height:100%;
+  font-family: Arial, sans-serif;
+  color:white;
+  background: url('assets/background.jpg') no-repeat center center fixed;
+  background-size: cover;
+  overflow-y: auto; /* permite arrastar a página verticalmente */
+}
+
+.container{
+  background: rgba(0,0,0,0.7);
+  padding: 20px;
+  margin: 40px auto;
+  border-radius: 15px;
+  width: 90%;
+  max-width: 600px;
+  text-align: center;
+}
+
+.logo{
+  width:25vw;
+  max-width:100px;
+  margin-bottom:20px;
+}
+
+h2{
+  font-size:4vw;
+  margin:10px 0;
+}
+
+button{
+  padding:10px 20px;
+  margin:5px;
+  border-radius:10px;
+  border:none;
+  cursor:pointer;
+  background:#00c6ff;
+  font-weight:bold;
+  color:black;
+  transition:0.3s;
+}
+button:hover{background:#00a3cc;}
+
+input, select{
+  padding:8px;
+  border-radius:8px;
+  border:none;
+  margin:5px;
+}
+
+.server{
+  background: rgba(255,255,255,0.1);
+  padding:10px;
+  border-radius:10px;
+  margin:10px 0;
+}
+
+.bullet{
+  display:inline-block;
+  width:12px;
+  height:12px;
+  border-radius:50%;
+  margin-right:5px;
+}
+.red{background:red;}
+.green{background:green;}
+</style>
+</head>
+<body>
+
+<div class="container">
+<img src="assets/logo.png" class="logo">
+<h2>Seja bem-vindo(a), <span id="playerNick"></span></h2>
+<button id="playMusicBtn">Play</button>
+
+<div id="menu" style="display:none;margin-top:20px;">
+<h3>Menu</h3>
+<button onclick="showTab('serversTab')">Servidores</button>
+<button onclick="showTab('createTab')">Criar Servidor</button>
+<button onclick="showTab('searchTab')">Procurar Servidor</button>
+
+<div id="serversTab" style="display:none;margin-top:20px;"></div>
+</div>
+
+<!-- Criar servidor -->
+<div id="createTab" style="display:none;margin-top:20px;">
+<h4>Criar Servidor</h4>
+<input type="text" id="serverName" placeholder="Nome do servidor" maxlength="12"><br>
+<label>Máx jogadores (1-6):</label>
+<input type="number" id="maxPlayers" min="1" max="6"><br>
+<label><input type="checkbox" id="hasPassword"> Usar senha</label><br>
+<input type="text" id="serverPassword" placeholder="Senha do servidor" style="display:none;"><br>
+<button id="createServerBtn" disabled>Criar Servidor</button>
+<p id="createdServerInfo"></p>
+</div>
+
+<!-- Procurar servidor -->
+<div id="searchTab" style="display:none;margin-top:20px;">
+<h4>Procurar Servidor</h4>
+<input type="text" id="searchID" placeholder="Cole o ID do servidor">
+<button onclick="searchServer()">Procurar</button>
+<div id="searchResult"></div>
+</div>
+
+<audio id="bgMusic" src="assets/music.mp3" loop></audio>
+
+<script>
+// ---------- NICK ----------
+const nick = sessionStorage.getItem("playerNick");
+if(!nick){
+  alert("Nick não encontrado! Volte ao index.");
+  window.location.href="index.html";
+}
+document.getElementById("playerNick").innerText = nick;
+
+// ---------- PLAY & MÚSICA ----------
+document.getElementById("playMusicBtn").addEventListener("click", ()=>{
+  document.getElementById("bgMusic").play().catch(e=>console.log(e));
+  document.getElementById("playMusicBtn").style.display="none";
+  document.getElementById("menu").style.display="block";
+});
+
+// ---------- MENU ABAS ----------
+function showTab(tab){
+  document.getElementById('serversTab').style.display='none';
+  document.getElementById('createTab').style.display='none';
+  document.getElementById('searchTab').style.display='none';
+  document.getElementById(tab).style.display='block';
+}
+
+// ---------- SERVIDORES ----------
+let servers = [];
+const blacklist = ["nigger","cu","bosta","porra","puta","desgraça","merda","filho da puta","caralho","vaca","idiota"];
+function isClean(str){ return !blacklist.some(word => str.toLowerCase().includes(word)); }
+
+// ---------- CRIAR SERVIDOR ----------
+document.getElementById("serverName").addEventListener("input", updateCreateBtn);
+document.getElementById("maxPlayers").addEventListener("input", updateCreateBtn);
+document.getElementById("hasPassword").addEventListener("change", ()=>{
+  document.getElementById("serverPassword").style.display = document.getElementById("hasPassword").checked ? "inline-block":"none";
+  updateCreateBtn();
+});
+document.getElementById("serverPassword").addEventListener("input", updateCreateBtn);
+
+function updateCreateBtn(){
+  const name = document.getElementById("serverName").value.trim();
+  const max = Number(document.getElementById("maxPlayers").value);
+  const pw = document.getElementById("serverPassword").value.trim();
+  let canCreate = name!=="" && isClean(name) && max>=1 && max<=6;
+  if(document.getElementById("hasPassword").checked) canCreate = canCreate && pw!=="";
+  document.getElementById("createServerBtn").disabled = !canCreate;
+}
+
+document.getElementById("createServerBtn").addEventListener("click", ()=>{
+  const name = document.getElementById("serverName").value.trim();
+  const max = Number(document.getElementById("maxPlayers").value);
+  const pw = document.getElementById("hasPassword").checked ? document.getElementById("serverPassword").value.trim() : null;
+  const id = generateServerID();
+  const server = {id,name,maxPlayers:max,password:pw,players:[nick]};
+  servers.push(server);
+  document.getElementById("createdServerInfo").innerHTML = `Servidor criado! ID: <b>${id}</b> <button onclick="copyID('${id}')">Copiar</button>`;
+});
+
+// ---------- ID ALEATÓRIO ----------
+function generateServerID(){
+  const chars="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let id="";
+  for(let i=0;i<8;i++) id+=chars.charAt(Math.floor(Math.random()*chars.length));
+  return id;
+}
+function copyID(id){ navigator.clipboard.writeText(id).then(()=>alert("ID copiado!")); }
+
+// ---------- RENDERIZA SERVIDORES ----------
+function renderServers(){
+  const container = document.getElementById("serversTab");
+  container.innerHTML="";
+  servers.forEach(s=>{
+    const div = document.createElement("div");
+    div.className="server";
+    const lock = s.password?"<span class='bullet red'></span>":"<span class='bullet green'></span>";
+    div.innerHTML=`${lock} <b>${s.name}</b> - ${s.players.length}/${s.maxPlayers} jogadores
+    <br><button onclick="enterServer('${s.id}')">Entrar</button>`;
+    container.appendChild(div);
+  });
+}
+
+// ---------- ENTRAR SERVIDOR ----------
+function enterServer(id){
+  const s = servers.find(s=>s.id===id);
+  if(!s) return alert("Servidor não encontrado!");
+  if(s.password){
+    const pw = prompt("Servidor protegido por senha. Digite a senha:");
+    if(pw!==s.password) return alert("Senha incorreta!");
+  }
+  if(s.players.length>=s.maxPlayers) return alert("Servidor cheio!");
+  s.players.push(nick);
+  sessionStorage.setItem("serverID",id);
+  alert(`Entrando no servidor ${s.name}...`);
+}
+
+// ---------- PROCURAR SERVIDOR ----------
+function searchServer(){
+  const id = document.getElementById("searchID").value.trim();
+  const result = document.getElementById("searchResult");
+  const s = servers.find(s=>s.id===id);
+  if(!s){ result.innerHTML="Servidor não encontrado"; return; }
+  const lock = s.password?"<span class='bullet red'></span>":"<span class='bullet green'></span>";
+  result.innerHTML=`${lock} <b>${s.name}</b> - ${s.players.length}/${s.maxPlayers} jogadores
+  <br><button onclick="enterServer('${s.id}')">Entrar</button>`;
+}
+</script>
+</body>
+</html>

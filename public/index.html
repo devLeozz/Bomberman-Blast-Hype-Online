@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bomberman Blast Hype Online</title>
+<style>
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  color:white;
+}
+.container{
+  background:rgba(255,255,255,0.08);
+  backdrop-filter:blur(10px);
+  padding:40px;
+  border-radius:20px;
+  text-align:center;
+  width:90%;
+  max-width:400px;
+}
+h1{margin-bottom:10px;}
+p{margin-bottom:20px;}
+input{
+  width:80%;
+  padding:12px;
+  border-radius:10px;
+  border:none;
+  margin-bottom:15px;
+}
+button{
+  padding:12px 25px;
+  border-radius:10px;
+  border:none;
+  background:#00c6ff;
+  color:black;
+  font-weight:bold;
+  cursor:pointer;
+  margin:5px;
+  transition:0.3s;
+}
+button:hover{background:#00a8dd;}
+.logo{width:120px;margin:20px 0;}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Bomberman Blast Hype Online</h1>
+<p>Escolha seu Nickname e jogue!</p>
+<img src="assets/logo.png" class="logo">
+
+<input type="text" id="nickname" placeholder="Digite seu Nickname" maxlength="12">
+<br>
+<button id="playBtn">Play</button>
+</div>
+
+<script>
+// Lista de palavras proibidas
+const blacklist = [
+  "nigger","cu","bosta","porra","puta","desgraça",
+  "merda","filho da puta","caralho","vaca","idiota"
+];
+
+function isCleanNick(nick){
+  const lower = nick.toLowerCase();
+  return !blacklist.some(word => lower.includes(word));
+}
+
+document.getElementById("playBtn").addEventListener("click", function(){
+  const nick = document.getElementById("nickname").value.trim();
+
+  if(nick === ""){
+    alert("Digite seu Nickname!");
+    return;
+  }
+
+  if(!isCleanNick(nick)){
+    alert("Nickname contém palavras proibidas! Escolha outro.");
+    return;
+  }
+
+  // Salva o Nick no sessionStorage (ou localStorage se quiser persistir)
+  sessionStorage.setItem("playerNick", nick);
+
+  // Redireciona para a plataforma ou jogo
+  window.location.href = "platform.html";
+});
+</script>
+</body>
+</html>

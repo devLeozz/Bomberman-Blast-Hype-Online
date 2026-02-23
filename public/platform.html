@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Escolha sua Plataforma - Bomberman Blast Hype Online</title>
+<style>
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  color:white;
+  text-align:center;
+}
+.container{
+  background:rgba(255,255,255,0.08);
+  backdrop-filter:blur(10px);
+  padding:40px;
+  border-radius:20px;
+  max-width:400px;
+  width:90%;
+}
+button{
+  padding:12px 25px;
+  border-radius:10px;
+  border:none;
+  background:#00c6ff;
+  color:black;
+  font-weight:bold;
+  cursor:pointer;
+  margin:10px;
+  transition:0.3s;
+}
+button:hover{background:#00a8dd;}
+.logo{width:120px;margin:20px 0;}
+#startScreen{
+  position:absolute;
+  top:0; left:0; right:0; bottom:0;
+  background:rgba(0,0,0,0.9);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+  z-index:100;
+  color:white;
+}
+#startScreen button{
+  padding:20px 40px;
+  font-size:18px;
+}
+</style>
+</head>
+<body>
+<div class="container">
+<img src="assets/logo.png" class="logo">
+<h2>Escolha sua Plataforma</h2>
+<button onclick="choosePlatform('PC')">PC</button>
+<button onclick="choosePlatform('Mobile')">Mobile</button>
+<button onclick="choosePlatform('Console (BETA)')">Console (BETA)</button>
+</div>
+
+<!-- Tela inicial para tocar música -->
+<div id="startScreen">
+<h2>Clique aqui para escolher plataforma</h2>
+<button id="startBtn">Escolher</button>
+</div>
+
+<audio id="bgMusic" src="assets/platform.mp3" loop></audio>
+
+<script>
+const startScreen = document.getElementById("startScreen");
+const startBtn = document.getElementById("startBtn");
+const bgMusic = document.getElementById("bgMusic");
+
+let playerNick = sessionStorage.getItem("playerNick");
+if(!playerNick){
+  alert("Nick não encontrado! Volte para o index.");
+  window.location.href = "index.html";
+}
+
+// Começar música quando clicar
+startBtn.addEventListener("click", ()=>{
+  bgMusic.play().catch(e=>{
+    console.log("Erro ao tocar música: ", e);
+  });
+  startScreen.style.display = "none";
+});
+
+// Função ao escolher plataforma
+function choosePlatform(platform){
+  // Salva plataforma e Nick
+  sessionStorage.setItem("playerPlatform", platform);
+  // Redireciona pro jogo
+  window.location.href = "game.html";
+}
+</script>
+</body>
+</html>
